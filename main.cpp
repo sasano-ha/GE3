@@ -1531,10 +1531,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #pragma region DirectX毎フレーム処理
         // DirectX毎フレーム処理　ここから
 
-        result = devkeyboard->Acquire();
-
-        BYTE key[256] = {};
-        result = devkeyboard->GetDeviceState(sizeof(key), key);
+        input->Update();
 
         const int cycle = 540; // 繰り返しの周期
         counter++;
@@ -1556,33 +1553,33 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
         object3ds[0].position = { offset, 0, 0 };
         object3ds[1].position = { -offset, 0, 0 };
 
-        if (key[DIK_0]) // 数字の0キーが押されていたら
+        if (input->PushKey(DIK_0)) // 数字の0キーが押されていたら
         {
             OutputDebugStringA("Hit 0\n");  // 出力ウィンドウに「Hit 0」と表示
         }        
 
         float clearColor[] = { 0.1f,0.25f, 0.5f,0.0f }; // 青っぽい色
 
-        if (key[DIK_SPACE])     // スペースキーが押されていたら
+        if (input->PushKey(DIK_SPACE))     // スペースキーが押されていたら
         {
             // 画面クリアカラーの数値を書き換える
             clearColor[1] = 1.0f;
         }
 
         // 座標操作
-        if (key[DIK_UP] || key[DIK_DOWN] || key[DIK_RIGHT] || key[DIK_LEFT])
+        if (input->PushKey(DIK_UP) || input->PushKey(DIK_DOWN) || input->PushKey(DIK_RIGHT) || input->PushKey(DIK_LEFT))
         {
-            if (key[DIK_UP]) { object3ds[0].position.y += 1.0f; }
-            else if (key[DIK_DOWN]) { object3ds[0].position.y -= 1.0f; }
-            if (key[DIK_RIGHT]) { object3ds[0].position.x += 1.0f; }
-            else if (key[DIK_LEFT]) { object3ds[0].position.x -= 1.0f; }
+            if (input->PushKey(DIK_UP)) { object3ds[0].position.y += 1.0f; }
+            else if (input->PushKey(DIK_DOWN)) { object3ds[0].position.y -= 1.0f; }
+            if (input->PushKey(DIK_RIGHT)) { object3ds[0].position.x += 1.0f; }
+            else if (input->PushKey(DIK_LEFT)) { object3ds[0].position.x -= 1.0f; }
         }
 
 
-        if (key[DIK_D] || key[DIK_A])
+        if (input->PushKey(DIK_D) || input->PushKey(DIK_A))
         {
-            if (key[DIK_D]) { angle += XMConvertToRadians(1.0f); }
-            else if (key[DIK_A]) { angle -= XMConvertToRadians(1.0f); }
+            if (input->PushKey(DIK_D)) { angle += XMConvertToRadians(1.0f); }
+            else if (input->PushKey(DIK_A)) { angle -= XMConvertToRadians(1.0f); }
 
             // angleラジアンだけY軸まわりに回転。半径は-100
             eye.x = -100 * sinf(angle);

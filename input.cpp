@@ -1,25 +1,18 @@
 #include "input.h"
-#include <wrl.h>
-#include <dinput.h>
-
-#define DIRECTINPUT_VERSION 0x0800  //DirectInputのバージョン指定
 
 #pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "dxguid.lib")
 
-using namespace Microsoft::WRL;
 
 void Input::Initialize(HINSTANCE hInstance, HWND hwnd)
 {
     HRESULT result;
 
-    //DirectInputのインスタンス生成
-    ComPtr<IDirectInput8> dinput = nullptr;
+    // DirectInputオブジェクトの生成
     result = DirectInput8Create(
         hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&dinput, nullptr);
 
     //キーボードデバイス生成
-    ComPtr<IDirectInputDevice8> devkeyboard = nullptr;
     result = dinput->CreateDevice(GUID_SysKeyboard, &devkeyboard, NULL);
 
     //入力データ形式セット
@@ -32,4 +25,32 @@ void Input::Initialize(HINSTANCE hInstance, HWND hwnd)
 
 void Input::Update()
 {
+    HRESULT result;
+
+    //前回のキー入力を保存
+    memcpy(keyPre, key, sizeof(key));
+
+    //キーボード情報の取得開始
+    result = devkeyboard->Acquire();
+
+    //全キーの入力情報を取得する
+    result = devkeyboard->GetDeviceState(sizeof(key), key);
+}
+
+bool Input::PushKey(BYTE keyNumber)
+{
+    //指定キーを押していればtrueを返す
+    if (key[keyNumber]) {
+        return true;
+    }
+    //そうでなければfalseを返す
+    return false;
+}
+
+bool Input::TriggerKey(BYTE keyNumber)
+{
+    if (keyPre[keyNumber] && key[keyNumber]) {
+        return true;
+    }
+    return false;
 }
