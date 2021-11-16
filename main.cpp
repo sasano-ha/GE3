@@ -25,6 +25,7 @@
 #pragma comment(lib,"xaudio2.lib")
 
 #include "input.h"
+#include "WinApp.h"
 
 using namespace DirectX;
 using namespace Microsoft::WRL;
@@ -393,7 +394,7 @@ SpriteCommon SpriteCommonCreate(ID3D12Device* dev, int window_width, int window_
 
     // 並行投影の射影行列生成
     spriteCommon.matProjection = XMMatrixOrthographicOffCenterLH(
-        0.0f, (float)window_width, (float)window_height, 0.0f, 0.0f, 1.0f);
+        0.0f, (float)WinApp::windows_width, (float)window_height, 0.0f, 0.0f, 1.0f);
 
     // デスクリプタヒープを生成 
     D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc = {};
@@ -968,40 +969,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
     //ポインタ置き場
     Input* input = nullptr;
+    WinApp* winApp = nullptr;
 
 #pragma region WindowsAPI初期化
-    // ウィンドウサイズ
-    const int window_width = 1280;  // 横幅
-    const int window_height = 720;  // 縦幅
 
-    WNDCLASSEX w{}; // ウィンドウクラスの設定
-    w.cbSize = sizeof(WNDCLASSEX);
-    w.lpfnWndProc = (WNDPROC)WindowProc; // ウィンドウプロシージャを設定
-    w.lpszClassName = L"DirectXGame"; // ウィンドウクラス名
-    w.hInstance = GetModuleHandle(nullptr); // ウィンドウハンドル
-    w.hCursor = LoadCursor(NULL, IDC_ARROW); // カーソル指定
+    //windowsAPIの初期化
+    winApp = new WinApp();
+    winApp->Initialize();
 
-    // ウィンドウクラスをOSに登録
-    RegisterClassEx(&w);
-    // ウィンドウサイズ{ X座標 Y座標 横幅 縦幅 }
-    RECT wrc = { 0, 0, window_width, window_height };
-    AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false); // 自動でサイズ補正
-
-    // ウィンドウオブジェクトの生成
-    HWND hwnd = CreateWindow(w.lpszClassName, // クラス名
-        L"DirectXGame",         // タイトルバーの文字
-        WS_OVERLAPPEDWINDOW,        // 標準的なウィンドウスタイル
-        CW_USEDEFAULT,              // 表示X座標（OSに任せる）
-        CW_USEDEFAULT,              // 表示Y座標（OSに任せる）
-        wrc.right - wrc.left,       // ウィンドウ横幅
-        wrc.bottom - wrc.top,   // ウィンドウ縦幅
-        nullptr,                // 親ウィンドウハンドル
-        nullptr,                // メニューハンドル
-        w.hInstance,            // 呼び出しアプリケーションハンドル
-        nullptr);               // オプション
-
-    // ウィンドウ表示
-    ShowWindow(hwnd, SW_SHOW);
 
     MSG msg{};  // メッセージ
 #pragma endregion WindowsAPI初期化
@@ -1118,7 +1093,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     // スワップチェーンの生成
     dxgiFactory->CreateSwapChainForHwnd(
         cmdQueue.Get(),
-        hwnd,
+        winApp->GetHwnd(),
         &swapchainDesc,
         nullptr,
         nullptr,
@@ -1158,8 +1133,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     // 深度バッファリソース設定
     CD3DX12_RESOURCE_DESC depthResDesc = CD3DX12_RESOURCE_DESC::Tex2D(
         DXGI_FORMAT_D32_FLOAT,
-        window_width,
-        window_height,
+        WinApp::windows_width,
+        WinApp::windows_height,
         1, 0,
         1, 0,
         D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
@@ -1197,7 +1172,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
    
     //入力の初期化
     input = new Input();
-    input->Initialize(w.hInstance, hwnd);
+    input->Initialize(winApp);
 
 
     ComPtr<IXAudio2> xAudio2;
@@ -1364,7 +1339,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     // 射影変換行列(透視投影)
     XMMATRIX matProjection = XMMatrixPerspectiveFovLH(
         XMConvertToRadians(60.0f),              // 画角60度
-        (float)window_width / window_height,    // アスペクト比（画面横幅/画面縦幅）
+        (float)WinApp::windows_width / WinApp::windows_height,    // アスペクト比（画面横幅/画面縦幅）
         0.1f, 1000.0f                           // 前端、奥端
     );
 
@@ -1418,7 +1393,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     object3ds[1].scale = { 0.5f, 0.5f, 0.5f };
 
     // スプライト共通データ生成
-    spriteCommon = SpriteCommonCreate(dev.Get(), window_width, window_height);
+    spriteCommon = SpriteCommonCreate(dev.Get(), WinApp::windows_width, WinApp::windows_height);
     // スプライト共通テクスチャ読み込み
     SpriteCommonLoadTexture(spriteCommon, 0, L"Resources/texture.png", dev.Get());
     SpriteCommonLoadTexture(spriteCommon, 1, L"Resources/house.png", dev.Get());
@@ -1427,7 +1402,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     for (int i = 0; i < _countof(sprites); i++)
     {
         int texNumber = rand() % 2;
-        sprites[i] = SpriteCreate(dev.Get(), window_width, window_height, texNumber, spriteCommon, { 0,0 }, false, false);
+        sprites[i] = SpriteCreate(dev.Get(), WinApp::windows_width, WinApp::windows_height, texNumber, spriteCommon, { 0,0 }, false, false);
 
         // スプライトの座標変更
         sprites[i].position.x = 1280/2;
@@ -1453,7 +1428,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     // デバッグテキスト用のテクスチャ読み込み
     SpriteCommonLoadTexture(spriteCommon, debugTextTexNumber, L"Resources/debugfont.png", dev.Get());
     // デバッグテキスト初期化
-    debugText.Initialize(dev.Get(), window_width, window_height, debugTextTexNumber, spriteCommon);
+    debugText.Initialize(dev.Get(), WinApp::windows_width, WinApp::windows_height, debugTextTexNumber, spriteCommon);
 
     // WICテクスチャのロード
     TexMetadata metadata{};
@@ -1515,18 +1490,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
     while (true)  // ゲームループ
     {
-#pragma region ウィンドウメッセージ処理
-        // メッセージがある？
-        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-            TranslateMessage(&msg); // キー入力メッセージの処理
-            DispatchMessage(&msg); // プロシージャにメッセージを送る
-        }
-
-        // ✖ボタンで終了メッセージが来たらゲームループを抜ける
-        if (msg.message == WM_QUIT) {
+        //windowsのメッセージ処理
+        if (winApp->ProcessMessage()) {
+            //ゲームループを抜ける
             break;
         }
-#pragma endregion ウィンドウメッセージ処理
 
 #pragma region DirectX毎フレーム処理
         // DirectX毎フレーム処理　ここから
@@ -1661,9 +1629,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
         cmdList->SetGraphicsRootSignature(object3dPipelineSet.rootsignature.Get());
         
         // ビューポート領域の設定
-        cmdList->RSSetViewports(1, &CD3DX12_VIEWPORT(0.0f, 0.0f, window_width, window_height));
+        cmdList->RSSetViewports(1, &CD3DX12_VIEWPORT(0.0f, 0.0f, WinApp::windows_width, WinApp::windows_height));
         // シザー矩形の設定
-        cmdList->RSSetScissorRects(1, &CD3DX12_RECT(0, 0, window_width, window_height));
+        cmdList->RSSetScissorRects(1, &CD3DX12_RECT(0, 0, WinApp::windows_width, WinApp::windows_height));
 
         //cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
         cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -1718,15 +1686,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     //入力解放
     delete input;
 
+    //windowsAPIの終了処理
+    winApp->Finalize();
+
+    //WindowsAPI解放
+    delete winApp;
+    winApp = nullptr;
+
     // XAudio2解放
     xAudio2.Reset();
     // 音声データ解放
     SoundUnload(&soundData1);
 
-#pragma region WindowsAPI後始末
-    // ウィンドウクラスを登録解除
-    UnregisterClass(w.lpszClassName, w.hInstance);
-#pragma endregion WindowsAPI後始末
 
 	return 0;
 }

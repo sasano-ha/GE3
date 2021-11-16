@@ -143,6 +143,7 @@
   <ItemGroup>
     <ClCompile Include="input.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="WinApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="DirectXTex\DirectXTex_Desktop_2019_Win10.vcxproj">
@@ -181,6 +182,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="input.h" />
+    <ClInclude Include="WinApp.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
