@@ -132,6 +132,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)DirectXTex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -144,6 +145,7 @@
     <ClCompile Include="DirectXCommon.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="Object3d.cpp" />
     <ClCompile Include="WinApp.cpp" />
   </ItemGroup>
@@ -198,6 +200,7 @@
   <ItemGroup>
     <ClInclude Include="DirectXCommon.h" />
     <ClInclude Include="input.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="Object3d.h" />
     <ClInclude Include="WinApp.h" />
   </ItemGroup>

@@ -227,7 +227,7 @@ namespace
             return E_OUTOFMEMORY;
         }
 
-        const XMVECTOR scale = XMVectorReplicate(alphaScale);
+        const XMVECTOR scale_ = XMVectorReplicate(alphaScale);
 
         const uint8_t *pSrcRow0 = srcImage.pixels;
         if (!pSrcRow0)
@@ -258,10 +258,10 @@ namespace
             for (size_t x = 0; x < srcImage.width - 1; ++x)
             {
                 // [0]=(x+0, y+0), [1]=(x+0, y+1), [2]=(x+1, y+0), [3]=(x+1, y+1)
-                XMVECTOR v1 = XMVectorSaturate(XMVectorMultiply(XMVectorSplatW(*pRow0), scale));
-                XMVECTOR v2 = XMVectorSaturate(XMVectorMultiply(XMVectorSplatW(*pRow1), scale));
-                XMVECTOR v3 = XMVectorSaturate(XMVectorMultiply(XMVectorSplatW(*(pRow0++)), scale));
-                XMVECTOR v4 = XMVectorSaturate(XMVectorMultiply(XMVectorSplatW(*(pRow1++)), scale));
+                XMVECTOR v1 = XMVectorSaturate(XMVectorMultiply(XMVectorSplatW(*pRow0), scale_));
+                XMVECTOR v2 = XMVectorSaturate(XMVectorMultiply(XMVectorSplatW(*pRow1), scale_));
+                XMVECTOR v3 = XMVectorSaturate(XMVectorMultiply(XMVectorSplatW(*(pRow0++)), scale_));
+                XMVECTOR v4 = XMVectorSaturate(XMVectorMultiply(XMVectorSplatW(*(pRow1++)), scale_));
 
                 v1 = XMVectorMergeXY(v1, v2); // [v1.x v2.x --- ---]
                 v3 = XMVectorMergeXY(v3, v4); // [v3.x v4.x --- ---]

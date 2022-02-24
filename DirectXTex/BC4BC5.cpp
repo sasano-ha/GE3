@@ -85,7 +85,7 @@ namespace
             {
                 uint8_t red_0;
                 uint8_t red_1;
-                uint8_t indices[6];
+                uint8_t indices_[6];
             };
             uint64_t data;
         };
@@ -144,7 +144,7 @@ namespace
             {
                 int8_t red_0;
                 int8_t red_1;
-                uint8_t indices[6];
+                uint8_t indices_[6];
             };
             uint64_t data;
         };

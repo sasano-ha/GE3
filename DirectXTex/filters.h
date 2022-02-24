@@ -65,13 +65,13 @@ inline void _CreateLinearFilter(_In_ size_t source, _In_ size_t dest, _In_ bool 
     assert(dest > 0);
     assert(lf != nullptr);
 
-    float scale = float(source) / float(dest);
+    float scale_ = float(source) / float(dest);
 
     // Mirror is the same case as clamp for linear
 
     for (size_t u = 0; u < dest; ++u)
     {
-        float srcB = (float(u) + 0.5f) * scale + 0.5f;
+        float srcB = (float(u) + 0.5f) * scale_ + 0.5f;
 
         ptrdiff_t isrcB = ptrdiff_t(srcB);
         ptrdiff_t isrcA = isrcB - 1;
@@ -165,11 +165,11 @@ inline void _CreateCubicFilter(_In_ size_t source, _In_ size_t dest, _In_ bool w
     assert(dest > 0);
     assert(cf != nullptr);
 
-    float scale = float(source) / float(dest);
+    float scale_ = float(source) / float(dest);
 
     for (size_t u = 0; u < dest; ++u)
     {
-        float srcB = (float(u) + 0.5f) * scale - 0.5f;
+        float srcB = (float(u) + 0.5f) * scale_ - 0.5f;
 
         ptrdiff_t isrcB = bounduvw(ptrdiff_t(srcB), ptrdiff_t(source) - 1, wrap, mirror);
         ptrdiff_t isrcA = bounduvw(isrcB - 1, ptrdiff_t(source) - 1, wrap, mirror);
@@ -251,8 +251,8 @@ namespace TriangleFilter
         assert(source > 0);
         assert(dest > 0);
 
-        float scale = float(dest) / float(source);
-        float scaleInv = 0.5f / scale;
+        float scale_ = float(dest) / float(source);
+        float scaleInv = 0.5f / scale_;
 
         // Determine storage required for filter and allocate memory if needed
         size_t totalSize = TF_FILTER_SIZE + TF_FROM_SIZE + TF_TO_SIZE;
@@ -261,8 +261,8 @@ namespace TriangleFilter
         for (size_t u = 0; u < source; ++u)
         {
             float src = float(u) - 0.5f;
-            float destMin = src * scale;
-            float destMax = destMin + scale;
+            float destMin = src * scale_;
+            float destMax = destMin + scale_;
             float t = destMax - destMin + repeat + 1.f;
             totalSize += TF_FROM_SIZE + TF_TO_SIZE + size_t(t) * TF_TO_SIZE * 2;
         }
@@ -319,8 +319,8 @@ namespace TriangleFilter
             {
                 float src = float(u + j) - 0.5f;
 
-                float destMin = src * scale;
-                float destMax = destMin + scale;
+                float destMin = src * scale_;
+                float destMax = destMin + scale_;
 
                 if (!wrap)
                 {

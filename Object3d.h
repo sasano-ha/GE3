@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "Model.h"
+
 #include <Windows.h>
 #include <wrl.h>
 #include <d3d12.h>
@@ -22,13 +24,7 @@ private: // エイリアス
 	using XMMATRIX = DirectX::XMMATRIX;
 
 public: // サブクラス
-	// 頂点データ構造体
-	struct VertexPosNormalUv
-	{
-		XMFLOAT3 pos; // xyz座標
-		XMFLOAT3 normal; // 法線ベクトル
-		XMFLOAT2 uv;  // uv座標
-	};
+
 
 	// 定数バッファ用データ構造体
 	struct ConstBufferData
@@ -37,40 +33,12 @@ public: // サブクラス
 		XMMATRIX mat;	// ３Ｄ変換行列
 	};
 
-	//マテリアル
-	struct Material
-	{
-		std::string name;	//マテリアル名
-		XMFLOAT3 ambient;	//アンビエント影響度
-		XMFLOAT3 diffuse;	//ディヒューズ影響度
-		XMFLOAT3 specular;	//スペキュラー影響度
-		float alpha;	//アルファ
-		std::string textureFilename;	//テクスチャファイル名
-		//コンストラクタ
-		Material() {
-			ambient = { 0.3f, 0.3f, 0.3f };
-			diffuse = { 0.0f, 0.0f, 0.0f };
-			specular = { 0.0f, 0.0f, 0.0f };
-			alpha = 1.0f;
-		}
-	};
+
 
 	//定数バッファ用のデータ構造体B0
 	struct ConstBufferDataB0
 	{
-		//XMFLOAT4 color;	//色（RGBA）
 		XMMATRIX mat;	//3D変換行列
-	};
-
-	//定数バッファ用データ構造体B1
-	struct ConstBufferDataB1
-	{
-		XMFLOAT3 ambient;	//アンビエント係数
-		float pad1;	//パディング
-		XMFLOAT3 diffuse;	//ディヒューズ係数
-		float pad2;	//パディング
-		XMFLOAT3 specular;	//スペキュラー係数
-		float alpha;	//アルファ
 	};
 
 private: // 定数
@@ -79,7 +47,7 @@ private: // 定数
 	static const float prizmHeight;			// 柱の高さ
 	static const int planeCount = division * 2 + division * 2;		// 面の数
 	static const int vertexCount = planeCount * 3;		// 頂点数
-	static Material material;
+	
 
 public: // 静的メンバ関数
 	/// <summary>
@@ -138,34 +106,15 @@ public: // 静的メンバ関数
 	/// <param name="move">移動量</param>
 	static void CameraMoveVector(XMFLOAT3 move);
 
-	/// <summary>
-	/// マテリアル読み込み
-	/// </summary>
-	static void LoadMaterial(const std::string& directoryPath, const std::string& filename);
-
 private: // 静的メンバ変数
 	// デバイス
 	static ID3D12Device* device;
-	// デスクリプタサイズ
-	static UINT descriptorHandleIncrementSize;
 	// コマンドリスト
 	static ID3D12GraphicsCommandList* cmdList;
 	// ルートシグネチャ
 	static ComPtr<ID3D12RootSignature> rootsignature;
 	// パイプラインステートオブジェクト
 	static ComPtr<ID3D12PipelineState> pipelinestate;
-	// デスクリプタヒープ
-	static ComPtr<ID3D12DescriptorHeap> descHeap;
-	// 頂点バッファ
-	static ComPtr<ID3D12Resource> vertBuff;
-	// インデックスバッファ
-	static ComPtr<ID3D12Resource> indexBuff;
-	// テクスチャバッファ
-	static ComPtr<ID3D12Resource> texbuff;
-	// シェーダリソースビューのハンドル(CPU)
-	static CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescHandleSRV;
-	// シェーダリソースビューのハンドル(CPU)
-	static CD3DX12_GPU_DESCRIPTOR_HANDLE gpuDescHandleSRV;
 	// ビュー行列
 	static XMMATRIX matView;
 	// 射影行列
@@ -178,24 +127,8 @@ private: // 静的メンバ変数
 	static XMFLOAT3 target;
 	// 上方向ベクトル
 	static XMFLOAT3 up;
-	// 頂点バッファビュー
-	static D3D12_VERTEX_BUFFER_VIEW vbView;
-	// インデックスバッファビュー
-	static D3D12_INDEX_BUFFER_VIEW ibView;
-	// 頂点データ配列
-	//static VertexPosNormalUv vertices[vertexCount];
-	static std::vector<VertexPosNormalUv> vertices;
-	// 頂点インデックス配列
-	//static unsigned short indices[planeCount * 3];
-	static std::vector<unsigned short> indices;
 
 private:// 静的メンバ関数
-	/// <summary>
-	/// デスクリプタヒープの初期化
-	/// </summary>
-	/// <returns></returns>
-	static bool InitializeDescriptorHeap();
-
 	/// <summary>
 	/// カメラ初期化
 	/// </summary>
@@ -208,12 +141,6 @@ private:// 静的メンバ関数
 	/// </summary>
 	/// <returns>成否</returns>
 	static bool InitializeGraphicsPipeline();
-
-	/// <summary>
-	/// テクスチャ読み込み
-	/// </summary>
-	/// <returns>成否</returns>
-	static bool LoadTexture(const std::string& directoryPath, const std::string& filename);
 
 	/// <summary>
 	/// モデル作成
@@ -241,28 +168,34 @@ public: // メンバ関数
 	/// 座標の取得
 	/// </summary>
 	/// <returns>座標</returns>
-	const XMFLOAT3& GetPosition() { return position; }
+	const XMFLOAT3& GetPosition() { return position_; }
 
 	/// <summary>
 	/// 座標の設定
 	/// </summary>
 	/// <param name="position">座標</param>
-	void SetPosition(XMFLOAT3 position) { this->position = position; }
+	void SetPosition(XMFLOAT3 position_) { this->position_ = position_; }
+
+	/// <summary>
+	/// setter
+	/// </summary>
+	void SetModel(Model* model) { this->model_ = model; }
+
+	void SetScale(XMFLOAT3 scale_) { this->scale_ = scale_; }
 
 private: // メンバ変数
-	//ComPtr<ID3D12Resource> constBuff; // 定数バッファ
-	ComPtr<ID3D12Resource>constBuffB0;	//定数バッファ
-	ComPtr<ID3D12Resource>constBuffB1;	//定数バッファ
-	// 色
-	XMFLOAT4 color = { 1,1,1,1 };
+	// 3Dモデル（借りてくる）
+	Model* model_ = nullptr;
+	// 行列用定数バッファ
+	ComPtr<ID3D12Resource>constBuffB0_;	//定数バッファ
 	// ローカルスケール
-	XMFLOAT3 scale = { 1,1,1 };
+	XMFLOAT3 scale_ = { 1,1,1 };
 	// X,Y,Z軸回りのローカル回転角
-	XMFLOAT3 rotation = { 0,0,0 };
+	XMFLOAT3 rotation_ = { 0,0,0 };
 	// ローカル座標
-	XMFLOAT3 position = { 0,0,0 };
+	XMFLOAT3 position_ = { 0,0,0 };
 	// ローカルワールド変換行列
-	XMMATRIX matWorld;
+	XMMATRIX matWorld_;
 	// 親オブジェクト
 	Object3d* parent = nullptr;
 };

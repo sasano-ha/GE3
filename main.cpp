@@ -28,6 +28,7 @@
 #include "WinApp.h"
 #include "DirectXCommon.h"
 #include "Object3d.h"
+#include "Model.h"
 
 using namespace DirectX;
 using namespace Microsoft::WRL;
@@ -75,7 +76,7 @@ struct SpriteCommon
 	// 射影行列
 	XMMATRIX matProjection{};
 	// テクスチャ用デスクリプタヒープの生成
-	ComPtr<ID3D12DescriptorHeap> descHeap;
+	ComPtr<ID3D12DescriptorHeap> descHeap_;
 	// テクスチャリソース（テクスチャバッファ）の配列
 	ComPtr<ID3D12Resource> texBuff[spriteSRVCount];
 };
@@ -84,17 +85,17 @@ struct SpriteCommon
 struct Sprite
 {
 	//頂点バッファ;
-	ComPtr<ID3D12Resource> vertBuff;
+	ComPtr<ID3D12Resource> vertBuff_;
 	//頂点バッファビュー;
-	D3D12_VERTEX_BUFFER_VIEW vbView{};
+	D3D12_VERTEX_BUFFER_VIEW vbView_{};
 	//定数バッファ;
 	ComPtr<ID3D12Resource> constBuff;
 	// Z軸回りの回転角
-	float rotation = 0.0f;
+	float rotation_ = 0.0f;
 	// 座標
-	XMFLOAT3 position = { 0,0,0 };
+	XMFLOAT3 position_ = { 0,0,0 };
 	// ワールド行列
-	XMMATRIX matWorld;
+	XMMATRIX matWorld_;
 	// 色(RGBA)
 	XMFLOAT4 color = { 1, 1, 1, 1 };
 	// テクスチャ番号
@@ -403,7 +404,7 @@ SpriteCommon SpriteCommonCreate(ID3D12Device* dev, int window_width, int window_
 	descHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	descHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	descHeapDesc.NumDescriptors = spriteSRVCount;
-	result = dev->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(&spriteCommon.descHeap));
+	result = dev->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(&spriteCommon.descHeap_));
 
 	return spriteCommon;
 }
@@ -464,7 +465,7 @@ void SpriteCommonLoadTexture(SpriteCommon& spriteCommon, UINT texnumber, const w
 	dev->CreateShaderResourceView(
 		spriteCommon.texBuff[texnumber].Get(), //ビューと関連付けるバッファ
 		&srvDesc, //テクスチャ設定情報
-		CD3DX12_CPU_DESCRIPTOR_HANDLE(spriteCommon.descHeap->GetCPUDescriptorHandleForHeapStart(), texnumber, dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV))
+		CD3DX12_CPU_DESCRIPTOR_HANDLE(spriteCommon.descHeap_->GetCPUDescriptorHandleForHeapStart(), texnumber, dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV))
 	);
 }
 
@@ -474,7 +475,7 @@ void SpriteTransferVertexBuffer(const Sprite& sprite, const SpriteCommon& sprite
 	HRESULT result = S_FALSE;
 
 	// 頂点データ
-	VertexPosUv vertices[] = {
+	VertexPosUv vertices_[] = {
 		//     u     v
 		{{}, {0.0f, 1.0f}}, // 左下
 		{{}, {0.0f, 0.0f}}, // 左上
@@ -502,10 +503,10 @@ void SpriteTransferVertexBuffer(const Sprite& sprite, const SpriteCommon& sprite
 		bottom = -bottom;
 	}
 
-	vertices[LB].pos = { left, bottom,  0.0f }; // 左下
-	vertices[LT].pos = { left, top,     0.0f }; // 左上
-	vertices[RB].pos = { right, bottom, 0.0f }; // 右下
-	vertices[RT].pos = { right, top,    0.0f }; // 右上
+	vertices_[LB].pos = { left, bottom,  0.0f }; // 左下
+	vertices_[LT].pos = { left, top,     0.0f }; // 左上
+	vertices_[RB].pos = { right, bottom, 0.0f }; // 右下
+	vertices_[RT].pos = { right, top,    0.0f }; // 右上
 
 	// 指定番号の画像が読み込み済みなら
 	if (spriteCommon.texBuff[sprite.texNumber]) {
@@ -517,17 +518,17 @@ void SpriteTransferVertexBuffer(const Sprite& sprite, const SpriteCommon& sprite
 		float tex_top = sprite.texLeftTop.y / resDesc.Height;
 		float tex_bottom = (sprite.texLeftTop.y + sprite.texSize.y) / resDesc.Height;
 
-		vertices[LB].uv = { tex_left,   tex_bottom }; // 左下
-		vertices[LT].uv = { tex_left,   tex_top }; // 左上
-		vertices[RB].uv = { tex_right,  tex_bottom }; // 右下
-		vertices[RT].uv = { tex_right,  tex_top }; // 右上
+		vertices_[LB].uv = { tex_left,   tex_bottom }; // 左下
+		vertices_[LT].uv = { tex_left,   tex_top }; // 左上
+		vertices_[RB].uv = { tex_right,  tex_bottom }; // 右下
+		vertices_[RT].uv = { tex_right,  tex_top }; // 右上
 	}
 
 	// 頂点バッファへのデータ転送
 	VertexPosUv* vertMap = nullptr;
-	result = sprite.vertBuff->Map(0, nullptr, (void**)&vertMap);
-	memcpy(vertMap, vertices, sizeof(vertices));
-	sprite.vertBuff->Unmap(0, nullptr);
+	result = sprite.vertBuff_->Map(0, nullptr, (void**)&vertMap);
+	memcpy(vertMap, vertices_, sizeof(vertices_));
+	sprite.vertBuff_->Unmap(0, nullptr);
 }
 
 // スプライト生成
@@ -549,7 +550,7 @@ Sprite SpriteCreate(ID3D12Device* dev, int window_width, int window_height, UINT
 	sprite.isFlipY = isFlipY;
 
 	// 頂点データ
-	VertexPosUv vertices[4];
+	VertexPosUv vertices_[4];
 
 	// 指定番号の画像が読み込み済みなら
 	if (spriteCommon.texBuff[sprite.texNumber]) {
@@ -565,16 +566,16 @@ Sprite SpriteCreate(ID3D12Device* dev, int window_width, int window_height, UINT
 	result = dev->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(sizeof(vertices)),
-		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&sprite.vertBuff));
+		&CD3DX12_RESOURCE_DESC::Buffer(sizeof(vertices_)),
+		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&sprite.vertBuff_));
 
 	// 頂点バッファデータ転送
 	SpriteTransferVertexBuffer(sprite, spriteCommon);
 
 	// 頂点バッファビューの作成
-	sprite.vbView.BufferLocation = sprite.vertBuff->GetGPUVirtualAddress();
-	sprite.vbView.SizeInBytes = sizeof(vertices);
-	sprite.vbView.StrideInBytes = sizeof(vertices[0]);
+	sprite.vbView_.BufferLocation = sprite.vertBuff_->GetGPUVirtualAddress();
+	sprite.vbView_.SizeInBytes = sizeof(vertices_);
+	sprite.vbView_.StrideInBytes = sizeof(vertices_[0]);
 
 	// 定数バッファの生成
 	result = dev->CreateCommittedResource(
@@ -607,7 +608,7 @@ void SpriteCommonBeginDraw(const SpriteCommon& spriteCommon, ID3D12GraphicsComma
 	cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 	// テクスチャ用デスクリプタヒープの設定
-	ID3D12DescriptorHeap* ppHeaps[] = { spriteCommon.descHeap.Get() };
+	ID3D12DescriptorHeap* ppHeaps[] = { spriteCommon.descHeap_.Get() };
 	cmdList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 }
 
@@ -615,16 +616,16 @@ void SpriteCommonBeginDraw(const SpriteCommon& spriteCommon, ID3D12GraphicsComma
 void SpriteUpdate(Sprite& sprite, const SpriteCommon& spriteCommon)
 {
 	// ワールド行列の更新
-	sprite.matWorld = XMMatrixIdentity();
+	sprite.matWorld_ = XMMatrixIdentity();
 	// Z軸回転
-	sprite.matWorld *= XMMatrixRotationZ(XMConvertToRadians(sprite.rotation));
+	sprite.matWorld_ *= XMMatrixRotationZ(XMConvertToRadians(sprite.rotation_));
 	// 平行移動
-	sprite.matWorld *= XMMatrixTranslation(sprite.position.x, sprite.position.y, sprite.position.z);
+	sprite.matWorld_ *= XMMatrixTranslation(sprite.position_.x, sprite.position_.y, sprite.position_.z);
 
 	// 定数バッファの転送
 	ConstBufferData* constMap = nullptr;
 	HRESULT result = sprite.constBuff->Map(0, nullptr, (void**)&constMap);
-	constMap->mat = sprite.matWorld * spriteCommon.matProjection;
+	constMap->mat = sprite.matWorld_ * spriteCommon.matProjection;
 	constMap->color = sprite.color;
 	sprite.constBuff->Unmap(0, nullptr);
 }
@@ -637,7 +638,7 @@ void SpriteDraw(const Sprite& sprite, ID3D12GraphicsCommandList* cmdList, const 
 	}
 
 	// 頂点バッファをセット
-	cmdList->IASetVertexBuffers(0, 1, &sprite.vbView);
+	cmdList->IASetVertexBuffers(0, 1, &sprite.vbView_);
 
 	// 定数バッファをセット
 	cmdList->SetGraphicsRootConstantBufferView(0, sprite.constBuff->GetGPUVirtualAddress());
@@ -645,7 +646,7 @@ void SpriteDraw(const Sprite& sprite, ID3D12GraphicsCommandList* cmdList, const 
 	// シェーダリソースビューをセット
 	cmdList->SetGraphicsRootDescriptorTable(1,
 		CD3DX12_GPU_DESCRIPTOR_HANDLE(
-			spriteCommon.descHeap->GetGPUDescriptorHandleForHeapStart(),
+			spriteCommon.descHeap_->GetGPUDescriptorHandleForHeapStart(),
 			sprite.texNumber,
 			dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)));
 
@@ -665,7 +666,7 @@ public: // 定数の宣言
 public: // メンバ関数
 	void Initialize(ID3D12Device* dev, int window_width, int window_height, UINT texnumber, const SpriteCommon& spriteCommon);
 
-	void Print(const SpriteCommon& spriteCommon, const std::string& text, float x, float y, float scale = 1.0f);
+	void Print(const SpriteCommon& spriteCommon, const std::string& text, float x, float y, float scale_ = 1.0f);
 
 	void DrawAll(ID3D12GraphicsCommandList* cmdList, const SpriteCommon& spriteCommon, ID3D12Device* dev);
 
@@ -686,7 +687,7 @@ void DebugText::Initialize(ID3D12Device* dev, int window_width, int window_heigh
 	}
 }
 
-void DebugText::Print(const SpriteCommon& spriteCommon, const std::string& text, float x, float y, float scale)
+void DebugText::Print(const SpriteCommon& spriteCommon, const std::string& text, float x, float y, float scale_)
 {
 	// 全ての文字について
 	for (int i = 0; i < text.size(); i++)
@@ -709,10 +710,10 @@ void DebugText::Print(const SpriteCommon& spriteCommon, const std::string& text,
 		int fontIndexX = fontIndex % fontLineCount;
 
 		// 座標計算
-		sprites[spriteIndex].position = { x + fontWidth * scale * i, y, 0 };
+		sprites[spriteIndex].position_ = { x + fontWidth * scale_ * i, y, 0 };
 		sprites[spriteIndex].texLeftTop = { (float)fontIndexX * fontWidth, (float)fontIndexY * fontHeight };
 		sprites[spriteIndex].texSize = { fontWidth, fontHeight };
-		sprites[spriteIndex].size = { fontWidth * scale, fontHeight * scale };
+		sprites[spriteIndex].size = { fontWidth * scale_, fontHeight * scale_ };
 		// 頂点バッファ転送
 		SpriteTransferVertexBuffer(sprites[spriteIndex], spriteCommon);
 		// 更新
@@ -735,88 +736,6 @@ void DebugText::DrawAll(ID3D12GraphicsCommandList* cmdList, const SpriteCommon& 
 
 	spriteIndex = 0;
 }
-
-//// 3Dオブジェクト型
-//struct Object3d
-//{
-//	// 定数バッファ
-//	ComPtr<ID3D12Resource> constBuff;
-//	// アフィン変換情報
-//	XMFLOAT3 scale = { 1,1,1 };
-//	XMFLOAT3 rotation = { 0,0,0 };
-//	XMFLOAT3 position = { 0,0,0 };
-//	// ワールド変換行列
-//	XMMATRIX matWorld;
-//	// 親オブジェクトへのポインタ
-//	Object3d* parent = nullptr;
-//};
-
-//// 3Dオブジェクト初期化
-//void InitializeObject3d(Object3d* object, int index, ID3D12Device* dev, ID3D12DescriptorHeap* descHeap)
-//{
-//	HRESULT result;
-//
-//	// 定数バッファの生成
-//	result = dev->CreateCommittedResource(
-//		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),   // アップロード可能
-//		D3D12_HEAP_FLAG_NONE,
-//		&CD3DX12_RESOURCE_DESC::Buffer((sizeof(ConstBufferData) + 0xff) & ~0xff),
-//		D3D12_RESOURCE_STATE_GENERIC_READ,
-//		nullptr,
-//		IID_PPV_ARGS(&object->constBuff));
-//}
-
-//void UpdateObject3d(Object3d* object, XMMATRIX& matView, XMMATRIX& matProjection)
-//{
-//	XMMATRIX matScale, matRot, matTrans;
-//
-//	// スケール、回転、平行移動行列の計算
-//	matScale = XMMatrixScaling(object->scale.x, object->scale.y, object->scale.z);
-//	matRot = XMMatrixIdentity();
-//	matRot *= XMMatrixRotationZ(XMConvertToRadians(object->rotation.z));
-//	matRot *= XMMatrixRotationX(XMConvertToRadians(object->rotation.x));
-//	matRot *= XMMatrixRotationY(XMConvertToRadians(object->rotation.y));
-//	matTrans = XMMatrixTranslation(object->position.x, object->position.y, object->position.z);
-//
-//	// ワールド行列の合成
-//	object->matWorld = XMMatrixIdentity(); // 変形をリセット
-//	object->matWorld *= matScale; // ワールド行列にスケーリングを反映
-//	object->matWorld *= matRot; // ワールド行列に回転を反映
-//	object->matWorld *= matTrans; // ワールド行列に平行移動を反映
-//
-//	// 親オブジェクトがあれば
-//	if (object->parent != nullptr) {
-//		// 親オブジェクトのワールド行列を掛ける
-//		object->matWorld *= object->parent->matWorld;
-//	}
-//
-//	// 定数バッファへデータ転送
-//	ConstBufferData* constMap = nullptr;
-//	if (SUCCEEDED(object->constBuff->Map(0, nullptr, (void**)&constMap))) {
-//		constMap->color = XMFLOAT4(1, 1, 1, 1); // RGBA
-//		constMap->mat = object->matWorld * matView * matProjection;
-//		object->constBuff->Unmap(0, nullptr);
-//	}
-//}
-
-//void DrawObject3d(Object3d* object, ID3D12GraphicsCommandList* cmdList, ID3D12DescriptorHeap* descHeap, D3D12_VERTEX_BUFFER_VIEW& vbView, D3D12_INDEX_BUFFER_VIEW& ibView, D3D12_GPU_DESCRIPTOR_HANDLE gpuDescHandleSRV, unsigned short* indices, UINT numIndices)
-//{
-//	// デスクリプタヒープの配列
-//	ID3D12DescriptorHeap* ppHeaps[] = { descHeap };
-//	cmdList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-//
-//	// 頂点バッファの設定
-//	cmdList->IASetVertexBuffers(0, 1, &vbView);
-//	// インデックスバッファの設定
-//	cmdList->IASetIndexBuffer(&ibView);
-//
-//	// 定数バッファビューをセット
-//	cmdList->SetGraphicsRootConstantBufferView(0, object->constBuff->GetGPUVirtualAddress());
-//	// シェーダリソースビューをセット
-//	cmdList->SetGraphicsRootDescriptorTable(1, gpuDescHandleSRV);
-//	// 描画コマンド
-//	cmdList->DrawIndexedInstanced(numIndices, 1, 0, 0, 0);
-//}
 
 // チャンクヘッダ
 struct ChunkHeader
@@ -1040,8 +959,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma region 描画初期化処理
 
+	//OBJからモデルデータを読み込む
+	Model* model_1 = Model::LoadFromOBJ("ground");
+	Model* model_2 = Model::LoadFromOBJ("triangle_mat");
 	//3Dオブジェクト生成
-	Object3d* object3d = Object3d::Create();
+	Object3d* object3d_1 = Object3d::Create();
+	Object3d* object3d_2 = Object3d::Create();
+	Object3d* object3d_3 = Object3d::Create();
+	//3Dオブジェクトに3Dモデルをひもづけ
+	object3d_1->SetModel(model_1);
+	object3d_2->SetModel(model_2);
+	object3d_3->SetModel(model_2);
+
+	object3d_2->SetScale({ 20.0f, 20.0f, 20.0f });
+	object3d_3->SetScale({ 30.0f, 30.0f, 30.0f });
+
+
+	object3d_2->SetPosition({ -5, 0, -5 });
+	object3d_3->SetPosition({ +5, 0, +5 });
 
 	// スプライト共通データ生成
 	spriteCommon = SpriteCommonCreate(dxCommon->GetDev(), WinApp::windows_width, WinApp::windows_height);
@@ -1056,8 +991,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		sprites[i] = SpriteCreate(dxCommon->GetDev(), WinApp::windows_width, WinApp::windows_height, texNumber, spriteCommon, { 0,0 }, false, false);
 
 		// スプライトの座標変更
-		sprites[i].position.x = 1280 / 2;
-		sprites[i].position.y = 720 / 2;
+		sprites[i].position_.x = 1280 / 2;
+		sprites[i].position_.y = 720 / 2;
 		//sprites[i].isInvisible = true;
 		//sprites[i].position.x = (float)(rand() % 1280);
 		//sprites[i].position.y = (float)(rand() % 720);
@@ -1123,7 +1058,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		//3Dオブジェクト更新
-		object3d->Update();
+		object3d_1->Update();
+		object3d_2->Update();
+		object3d_3->Update();
 
 		// DirectX毎フレーム処理　ここまで
 #pragma endregion DirectX毎フレーム処理
@@ -1136,7 +1073,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		Object3d::PreDraw(dxCommon->GetCmdList());
 
 		//3Dオブジェクトの描画
-		object3d->Draw();
+		object3d_1->Draw();
+		object3d_2->Draw();
+		object3d_3->Draw();
 
 		//3Dオブジェクトの描画後処理
 		Object3d::PostDraw();
@@ -1171,7 +1110,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	delete dxCommon;
 
 	//3Dオブジェクト解放
-	delete object3d;
+	delete object3d_1;
+	delete object3d_2;
+	delete object3d_3;
+
+	//3Dオブジェクト解放
+	delete model_1;
+	delete model_2;
 
 	// XAudio2解放
 	xAudio2.Reset();
