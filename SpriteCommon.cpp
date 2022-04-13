@@ -1,33 +1,123 @@
 #include "SpriteCommon.h"
 
 #include <cassert>
+#include <d3dcompiler.h>
+#pragma comment(lib, "d3dcompiler.lib")
+#include <string>
+#include <d3dx12.h>
+#include <DirectXTex.h>
 
-void SpriteCommon::Initialize(ID3D12Device* device)
+using namespace DirectX;
+using namespace Microsoft::WRL;
+
+void SpriteCommon::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* commandList, int windows_width, int window_height)
 {
 	//nullポインタチェック
 	assert(device);
 
 	//メンバ変数に記録
 	device_ = device;
+	commandList_ = commandList;
 
 	HRESULT result = S_FALSE;
 
 	// スプライト用パイプライン生成
-	pipelineSet = CreateGraphicsPipeline(dev);
+	CreateGraphicsPipeline();
 
 	// 並行投影の射影行列生成
-	matProjection = XMMatrixOrthographicOffCenterLH(
-		0.0f, (float)WinApp::windows_width, (float)window_height, 0.0f, 0.0f, 1.0f);
+	matProjection_ = XMMatrixOrthographicOffCenterLH(
+		0.0f, (float)windows_width, (float)window_height, 0.0f, 0.0f, 1.0f);
 
 	// デスクリプタヒープを生成 
 	D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc = {};
 	descHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	descHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	descHeapDesc.NumDescriptors = kSpriteSRVCount;
-	result = dev->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(&descHeap_));
+	result = device_->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(&descHeap_));
 }
 
-void SpriteCommon::CreateGraphicsPipeline(ID3D12Device* dev)
+void SpriteCommon::PreDraw()
+{
+	// パイプラインステートの設定
+	commandList_->SetPipelineState(pipelineSet_.pipelinestate.Get());
+	// ルートシグネチャの設定
+	commandList_->SetGraphicsRootSignature(pipelineSet_.rootsignature.Get());
+	// プリミティブ形状を設定
+	commandList_->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+	// テクスチャ用デスクリプタヒープの設定
+	ID3D12DescriptorHeap* ppHeaps[] = { descHeap_.Get() };
+	commandList_->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+}
+
+void SpriteCommon::LoadTexture(UINT texnumber, const wchar_t* filename)
+{
+	// 異常な番号の指定を検出
+	assert(texnumber <= kSpriteSRVCount - 1);
+
+	HRESULT result = S_FALSE;
+
+	// WICテクスチャのロード
+	TexMetadata metadata{};
+	ScratchImage scratchImg{};
+
+	result = LoadFromWICFile(
+		filename,
+		WIC_FLAGS_NONE,
+		&metadata, scratchImg);
+
+	const Image* img = scratchImg.GetImage(0, 0, 0); // 生データ抽出
+
+	// リソース設定
+	CD3DX12_RESOURCE_DESC texresDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+		metadata.format,
+		metadata.width,
+		(UINT)metadata.height,
+		(UINT16)metadata.arraySize,
+		(UINT16)metadata.mipLevels);
+
+	// テクスチャ用バッファの生成
+	result = device_->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_CPU_PAGE_PROPERTY_WRITE_BACK, D3D12_MEMORY_POOL_L0),
+		D3D12_HEAP_FLAG_NONE,
+		&texresDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ, // テクスチャ用指定
+		nullptr,
+		IID_PPV_ARGS(&texBuff_[texnumber]));
+
+	// テクスチャバッファにデータ転送
+	result = texBuff_[texnumber]->WriteToSubresource(
+		0,
+		nullptr, // 全領域へコピー
+		img->pixels,    // 元データアドレス
+		(UINT)img->rowPitch,    // 1ラインサイズ
+		(UINT)img->slicePitch   // 1枚サイズ
+	);
+
+	// シェーダリソースビュー設定
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{}; // 設定構造体
+	srvDesc.Format = metadata.format;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;//2Dテクスチャ
+	srvDesc.Texture2D.MipLevels = 1;
+
+	// ヒープのtexnumber番目にシェーダーリソースビュー作成
+	device_->CreateShaderResourceView(
+		texBuff_[texnumber].Get(), //ビューと関連付けるバッファ
+		&srvDesc, //テクスチャ設定情報
+		CD3DX12_CPU_DESCRIPTOR_HANDLE(descHeap_->GetCPUDescriptorHandleForHeapStart(), texnumber, device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV))
+	);
+}
+
+ID3D12Resource* SpriteCommon::GetTexBuff(int texNumber)
+{
+
+	assert(0 <= texNumber && texNumber < kSpriteSRVCount);
+
+	return texBuff_[texNumber].Get();
+}
+
+void SpriteCommon::CreateGraphicsPipeline()
 {
 	HRESULT result;
 
@@ -138,10 +228,7 @@ void SpriteCommon::CreateGraphicsPipeline(ID3D12Device* dev)
 	// スタティックサンプラー
 	CD3DX12_STATIC_SAMPLER_DESC samplerDesc = CD3DX12_STATIC_SAMPLER_DESC(0);
 
-	// パイプラインとルートシグネチャのセット
-	PipelineSet pipelineSet;
-
-	// ルートシグネチャの生成
+	
 	// ルートシグネチャの設定
 	CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
 	rootSignatureDesc.Init_1_0(_countof(rootparams), rootparams, 1, &samplerDesc, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -150,10 +237,10 @@ void SpriteCommon::CreateGraphicsPipeline(ID3D12Device* dev)
 	// バージョン自動判定でのシリアライズ
 	result = D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &rootSigBlob, &errorBlob);
 	// ルートシグネチャの生成
-	result = dev->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&pipelineSet.rootsignature));
+	result = device_->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&pipelineSet_.rootsignature));
 
 	// パイプラインにルートシグネチャをセット
-	gpipeline.pRootSignature = pipelineSet.rootsignature.Get();
+	gpipeline.pRootSignature = pipelineSet_.rootsignature.Get();
 
-	result = dev->CreateGraphicsPipelineState(&gpipeline, IID_PPV_ARGS(&pipelineSet.pipelinestate));
+	result = device_->CreateGraphicsPipelineState(&gpipeline, IID_PPV_ARGS(&pipelineSet_.pipelinestate));
 }
