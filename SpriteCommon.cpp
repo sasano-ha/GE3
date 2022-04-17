@@ -50,6 +50,15 @@ void SpriteCommon::PreDraw()
 	commandList_->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 }
 
+void SpriteCommon::SetGraphicsRootDescriptorTable(UINT rootParameterIndex, UINT texNumber)
+{
+	commandList_->SetGraphicsRootDescriptorTable(rootParameterIndex,
+		CD3DX12_GPU_DESCRIPTOR_HANDLE(
+			descHeap_->GetGPUDescriptorHandleForHeapStart(),
+			texNumber,
+			device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)));
+}
+
 void SpriteCommon::LoadTexture(UINT texnumber, const wchar_t* filename)
 {
 	// ˆÙí‚È”Ô†‚Ìw’è‚ğŒŸo

@@ -27,14 +27,36 @@ public:
 	};
 
 	/// <summary>
+	/// スプライト生成
+	/// </summary>
+	/// <param name="spriteCommon">スプライト共通</param>
+	/// <param name="texNumber">テクスチャ番号</param>
+	/// <param name="anchorpoint">アンカーポイント</param>
+	/// <param name="isFlipX">X反転するか</param>
+	/// <param name="isFlipY">Y反転するか</param>
+	/// <return>スプライト</return>
+	static Sprite* Create(SpriteCommon* spriteCommon, UINT texNumber, DirectX::XMFLOAT2 anchorpoint = { (0.5f),(0.5f) }, bool isFlipX = false, bool isFlipY = false);
+
+	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Initialize(SpriteCommon* spriteCommon, UINT texNumber, DirectX::XMFLOAT2 anchorpoint = { (0.5f),(0.5f) }, bool isFlipX = false, bool isFlipY = false);
+	void Initialize(SpriteCommon* spriteCommon, UINT texNumber, DirectX::XMFLOAT2 anchorpoint, bool isFlipX, bool isFlipY);
 
 	/// <summary>
 	/// 頂点バッファの転送
 	/// </summary>
 	void TransferVertexBuffer();
+
+	/// <summary>
+	/// 毎フレーム更新処理
+	/// </summary>
+	void Update();
+
+	void Draw();
+
+	void SetPosition(const DirectX::XMFLOAT3& position) { position_ = position; }
+	void SetRotation(float rotation) { rotation_ = rotation; }
+	void SetSize(const DirectX::XMFLOAT2& size) { size_ = size; }
 
 private:
 	//スプライト共通部分

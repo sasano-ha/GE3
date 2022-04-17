@@ -4,7 +4,17 @@
 
 using namespace DirectX;
 
-void Sprite::Initialize(SpriteCommon* spriteCommon, UINT texNumber, DirectX::XMFLOAT2 anchorpoint, bool isFlipX, bool isFlipY )
+Sprite* Sprite::Create(SpriteCommon* spriteCommon, UINT texNumber, DirectX::XMFLOAT2 anchorpoint, bool isFlipX, bool isFlipY)
+{
+	//メモリ確保
+	Sprite* instance = new Sprite();
+	//インスタンス初期化
+	instance->Initialize(spriteCommon, texNumber, anchorpoint, isFlipX, isFlipY);
+
+	return instance;
+}
+
+void Sprite::Initialize(SpriteCommon* spriteCommon, UINT texNumber, DirectX::XMFLOAT2 anchorpoint, bool isFlipX, bool isFlipY)
 {
 	HRESULT result = S_FALSE;
 
@@ -123,4 +133,42 @@ void Sprite::TransferVertexBuffer()
 	result = vertBuff_->Map(0, nullptr, (void**)&vertMap);
 	memcpy(vertMap, vertices_, sizeof(vertices_));
 	vertBuff_->Unmap(0, nullptr);
+}
+
+void Sprite::Update()
+{
+	// ワールド行列の更新
+	matWorld_ = XMMatrixIdentity();
+	// Z軸回転
+	matWorld_ *= XMMatrixRotationZ(XMConvertToRadians(rotation_));
+	// 平行移動
+	matWorld_ *= XMMatrixTranslation(position_.x, position_.y, position_.z);
+
+	// 定数バッファの転送
+	ConstBufferData* constMap = nullptr;
+	HRESULT result = constBuff_->Map(0, nullptr, (void**)&constMap);
+	constMap->mat = matWorld_ * spriteCommon_->GetMatProjection();
+	constMap->color = color_;
+	constBuff_->Unmap(0, nullptr);
+}
+
+void Sprite::Draw()
+{
+	if (isInvisible_) {
+		return;
+	}
+
+	ID3D12GraphicsCommandList* commandList = spriteCommon_->GetCommandList();
+
+	// 頂点バッファをセット
+	commandList->IASetVertexBuffers(0, 1, &vbView_);
+
+	// ルートパラメーター0番に定数バッファをセット
+	commandList->SetGraphicsRootConstantBufferView(0, constBuff_->GetGPUVirtualAddress());
+
+	// ルートパラメーター1番にシェーダリソースビューをセット
+	spriteCommon_->SetGraphicsRootDescriptorTable(1, texNumber_);
+
+	// ポリゴンの描画（4頂点で四角形）
+	commandList->DrawInstanced(4, 1, 0, 0);
 }

@@ -1,22 +1,6 @@
-﻿#include <Windows.h>
-#pragma comment(lib, "d3d12.lib")
-#pragma comment(lib, "dxgi.lib")
-
-#include <vector>
+﻿#include <vector>
 #include <string>
 #include <fstream>
-#include <DirectXMath.h>
-
-
-#define DIRECTINPUT_VERSION     0x0800   // DirectInputのバージョン指定
-#include <dinput.h>
-
-#pragma comment(lib, "dinput8.lib")
-#pragma comment(lib, "dxguid.lib")
-
-#include <DirectXTex.h>
-#include <wrl.h>
-
 #include <xaudio2.h>
 #pragma comment(lib,"xaudio2.lib")
 
@@ -28,61 +12,7 @@
 #include "SpriteCommon.h"
 #include "Sprite.h"
 
-using namespace DirectX;
 using namespace Microsoft::WRL;
-
-LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-	// メッセージで分岐
-	switch (msg) {
-	case WM_DESTROY: // ウィンドウが破棄された
-		PostQuitMessage(0); // OSに対して、アプリの終了を伝える
-		return 0;
-	}
-	return DefWindowProc(hwnd, msg, wparam, lparam); // 標準の処理を行う
-}
-
-
-// スプライト単体更新
-//void SpriteUpdate(Sprite& sprite, const SpriteCommon& spriteCommon)
-//{
-//	// ワールド行列の更新
-//	sprite.matWorld_ = XMMatrixIdentity();
-//	// Z軸回転
-//	sprite.matWorld_ *= XMMatrixRotationZ(XMConvertToRadians(sprite.rotation_));
-//	// 平行移動
-//	sprite.matWorld_ *= XMMatrixTranslation(sprite.position_.x, sprite.position_.y, sprite.position_.z);
-//
-//	// 定数バッファの転送
-//	ConstBufferData* constMap = nullptr;
-//	HRESULT result = sprite.constBuff->Map(0, nullptr, (void**)&constMap);
-//	constMap->mat = sprite.matWorld_ * spriteCommon.matProjection;
-//	constMap->color = sprite.color;
-//	sprite.constBuff->Unmap(0, nullptr);
-//}
-
-// スプライト単体描画
-//void SpriteDraw(const Sprite& sprite, ID3D12GraphicsCommandList* cmdList, const SpriteCommon& spriteCommon, ID3D12Device* dev)
-//{
-//	if (sprite.isInvisible) {
-//		return;
-//	}
-//
-//	// 頂点バッファをセット
-//	cmdList->IASetVertexBuffers(0, 1, &sprite.vbView_);
-//
-//	// 定数バッファをセット
-//	cmdList->SetGraphicsRootConstantBufferView(0, sprite.constBuff->GetGPUVirtualAddress());
-//
-//	// シェーダリソースビューをセット
-//	cmdList->SetGraphicsRootDescriptorTable(1,
-//		CD3DX12_GPU_DESCRIPTOR_HANDLE(
-//			spriteCommon.descHeap_->GetGPUDescriptorHandleForHeapStart(),
-//			sprite.texNumber,
-//			dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)));
-//
-//	// ポリゴンの描画（4頂点で四角形）
-//	cmdList->DrawInstanced(4, 1, 0, 0);
-//}
 
 // デバッグ文字列クラスの定義
 //class DebugText
@@ -418,30 +348,26 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	spriteCommon->LoadTexture(0, L"Resources/texture.png");
 	spriteCommon->LoadTexture(1, L"Resources/house.png");
 
-	Sprite* sprite = new Sprite();
-	sprite->Initialize(spriteCommon, 0);
+	std::vector<Sprite*> sprites;
 
 	// スプライトの生成
-	//for (int i = 0; i < _countof(sprites); i++)
-	//{
-	//	int texNumber = rand() % 2;
-	//	sprites[i] = SpriteCreate(dxCommon->GetDev(), WinApp::windows_width, WinApp::windows_height, texNumber, spriteCommon, { 0,0 }, false, false);
+	for (int i = 0; i < 20; i++)
+	{
+		int texNumber = 0;
+		 Sprite* sprite = Sprite::Create(spriteCommon, texNumber, { 0,0 }, false, false);
 
-	//	// スプライトの座標変更
-	//	sprites[i].position_.x = 1280 / 2;
-	//	sprites[i].position_.y = 720 / 2;
-	//	//sprites[i].isInvisible = true;
-	//	//sprites[i].position.x = (float)(rand() % 1280);
-	//	//sprites[i].position.y = (float)(rand() % 720);
+		// スプライトの座標変更
+		sprite->SetPosition({ (float)(rand() % 1280), (float)(rand() % 720), 0 });
+		sprite->SetRotation((float)(rand() % 360));
+		sprite->SetSize({ (float)(rand() % 400), (float)(rand() % 400) });
+		//sprites[i].isInvisible = true;
+		//sprites[i].size.x = 400.0f;
+		//sprites[i].size.y = 100.0f;
+		// 頂点バッファに反映
+		sprite->TransferVertexBuffer();
 
-	//	//sprites[i].rotation = (float)(rand() % 360);
-	//	//sprites[i].rotation = 0;
-
-	//	//sprites[i].size.x = 400.0f;
-	//	//sprites[i].size.y = 100.0f;
-	//	// 頂点バッファに反映
-	//	SpriteTransferVertexBuffer(sprites[i], spriteCommon);
-	//}
+		sprites.push_back(sprite);
+	}
 
 	//// デバッグテキスト
 	//DebugText debugText;
@@ -485,7 +411,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			
 		}
 
-
 		if (input->PushKey(DIK_D) || input->PushKey(DIK_A))
 		{
 
@@ -496,6 +421,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		object3d_2->Update();
 		object3d_3->Update();
 
+		//スプライト更新
+		for (auto& sprite : sprites) {
+			sprite->Update();
+		}
+	
 		// DirectX毎フレーム処理　ここまで
 #pragma endregion DirectX毎フレーム処理
 
@@ -517,11 +447,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		// スプライト共通コマンド
 		spriteCommon->PreDraw();
 
-		//// スプライト描画
-		//for (int i = 0; i < _countof(sprites); i++)
-		//{
-		//	SpriteDraw(sprites[i], dxCommon->GetCmdList(), spriteCommon, dxCommon->GetDev());
-		//}
+		for (auto& sprite : sprites) {
+			sprite->Draw();
+		}
+
 		//// デバッグテキスト描画
 		//debugText.DrawAll(dxCommon->GetCmdList(), spriteCommon, dxCommon->GetDev());
 
@@ -530,6 +459,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//描画後処理
 		dxCommon->PostDraw();
 	}
+	//スプライト解放
+	for (auto& sprite : sprites) {
+		delete sprite;
+	}
+	sprites.clear();
+
 	//スプライト共通部解放
 	delete spriteCommon;
 

@@ -30,6 +30,13 @@ public:	//プロジェクト全体で使える
 	void PreDraw();
 
 	/// <summary>
+	/// ルートデスクリプタテーブルの設定
+	/// </summary>
+	/// <param name="rootParameterIndex">ルートパラメーター番号</param>
+	/// <param name="texNumber">テクスチャ番号</param>
+	void SetGraphicsRootDescriptorTable(UINT rootParameterIndex, UINT texNumber);
+
+	/// <summary>
 	/// テクスチャ読み込み
 	/// </summary>
 	/// <param name="texNumber"></param>
@@ -47,6 +54,8 @@ public:	//プロジェクト全体で使える
 	ID3D12Device* GetDevice() { return device_; }
 
 	const DirectX::XMMATRIX& GetMatProjection() { return matProjection_; }
+
+	ID3D12GraphicsCommandList* GetCommandList() { return commandList_; }
 
 private:	//宣言のみで使える
 	// パイプラインセット
