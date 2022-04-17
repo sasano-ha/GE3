@@ -11,91 +11,9 @@
 #include "Model.h"
 #include "SpriteCommon.h"
 #include "Sprite.h"
+#include "DebugText.h"
 
 using namespace Microsoft::WRL;
-
-// デバッグ文字列クラスの定義
-//class DebugText
-//{
-//public: // 定数の宣言    
-//	static const int maxCharCount = 256;    // 最大文字数
-//	static const int fontWidth = 9;         // フォント画像内1文字分の横幅
-//	static const int fontHeight = 18;       // フォント画像内1文字分の縦幅
-//	static const int fontLineCount = 14;    // フォント画像内1行分の文字数
-//
-//public: // メンバ関数
-//	void Initialize(ID3D12Device* dev, int window_width, int window_height, UINT texnumber, const SpriteCommon& spriteCommon);
-//
-//	void Print(const SpriteCommon& spriteCommon, const std::string& text, float x, float y, float scale_ = 1.0f);
-//
-//	void DrawAll(ID3D12GraphicsCommandList* cmdList, const SpriteCommon& spriteCommon, ID3D12Device* dev);
-//
-//private: // メンバ変数     
-//	// スプライトデータの配列
-//	Sprite sprites[maxCharCount];
-//	// スプライトデータ配列の添え字番号
-//	int spriteIndex = 0;
-//};
-//
-//void DebugText::Initialize(ID3D12Device* dev, int window_width, int window_height, UINT texnumber, const SpriteCommon& spriteCommon)
-//{
-//	// 全てのスプライトデータについて
-//	for (int i = 0; i < _countof(sprites); i++)
-//	{
-//		// スプライトを生成する
-//		sprites[i] = SpriteCreate(dev, window_width, window_height, texnumber, spriteCommon, { 0,0 });
-//	}
-//}
-//
-//void DebugText::Print(const SpriteCommon& spriteCommon, const std::string& text, float x, float y, float scale_)
-//{
-//	// 全ての文字について
-//	for (int i = 0; i < text.size(); i++)
-//	{
-//		// 最大文字数超過
-//		if (spriteIndex >= maxCharCount) {
-//			break;
-//		}
-//
-//		// 1文字取り出す(※ASCIIコードでしか成り立たない)
-//		const unsigned char& character = text[i];
-//
-//		// ASCIIコードの2段分飛ばした番号を計算
-//		int fontIndex = character - 32;
-//		if (character >= 0x7f) {
-//			fontIndex = 0;
-//		}
-//
-//		int fontIndexY = fontIndex / fontLineCount;
-//		int fontIndexX = fontIndex % fontLineCount;
-//
-//		// 座標計算
-//		sprites[spriteIndex].position_ = { x + fontWidth * scale_ * i, y, 0 };
-//		sprites[spriteIndex].texLeftTop = { (float)fontIndexX * fontWidth, (float)fontIndexY * fontHeight };
-//		sprites[spriteIndex].texSize = { fontWidth, fontHeight };
-//		sprites[spriteIndex].size = { fontWidth * scale_, fontHeight * scale_ };
-//		// 頂点バッファ転送
-//		SpriteTransferVertexBuffer(sprites[spriteIndex], spriteCommon);
-//		// 更新
-//		SpriteUpdate(sprites[spriteIndex], spriteCommon);
-//
-//		// 文字を１つ進める
-//		spriteIndex++;
-//	}
-//}
-//
-//// まとめて描画
-//void DebugText::DrawAll(ID3D12GraphicsCommandList* cmdList, const SpriteCommon& spriteCommon, ID3D12Device* dev)
-//{
-//	// 全ての文字のスプライトについて
-//	for (int i = 0; i < spriteIndex; i++)
-//	{
-//		// スプライト描画
-//		SpriteDraw(sprites[i], cmdList, spriteCommon, dev);
-//	}
-//
-//	spriteIndex = 0;
-//}
 
 // チャンクヘッダ
 struct ChunkHeader
@@ -342,8 +260,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	object3d_2->SetPosition({ -5, 0, -5 });
 	object3d_3->SetPosition({ +5, 0, +5 });
 
-	// スプライト共通データ生成
-	//spriteCommon = SpriteCommonCreate(dxCommon->GetDev(), WinApp::windows_width, WinApp::windows_height);
 	// スプライト共通テクスチャ読み込み
 	spriteCommon->LoadTexture(0, L"Resources/texture.png");
 	spriteCommon->LoadTexture(1, L"Resources/house.png");
@@ -369,15 +285,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		sprites.push_back(sprite);
 	}
 
-	//// デバッグテキスト
-	//DebugText debugText;
+	// デバッグテキスト
+	DebugText* debugText = nullptr;
+	debugText = new DebugText();
 
-	//// デバッグテキスト用のテクスチャ番号を指定
-	//const int debugTextTexNumber = 2;
-	//// デバッグテキスト用のテクスチャ読み込み
-	//SpriteCommonLoadTexture(spriteCommon, debugTextTexNumber, L"Resources/debugfont.png", dxCommon->GetDev());
-	//// デバッグテキスト初期化
-	//debugText.Initialize(dxCommon->GetDev(), WinApp::windows_width, WinApp::windows_height, debugTextTexNumber, spriteCommon);
+	// デバッグテキスト用のテクスチャ番号を指定
+	const int debugTextTexNumber = 2;
+	// デバッグテキスト用のテクスチャ読み込み
+	spriteCommon->LoadTexture(debugTextTexNumber, L"Resources/debugfont.png");
+	// デバッグテキスト初期化
+	debugText->Initialize(spriteCommon, debugTextTexNumber);
 
 
 #pragma endregion 描画初期化処理
@@ -416,6 +333,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		}
 
+		debugText->Print("Hello,DirectX!!", 200, 100);
+		debugText->Print("Nihon Kogakuin", 200, 200, 2.0f);
+
 		//3Dオブジェクト更新
 		object3d_1->Update();
 		object3d_2->Update();
@@ -451,28 +371,32 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			sprite->Draw();
 		}
 
-		//// デバッグテキスト描画
-		//debugText.DrawAll(dxCommon->GetCmdList(), spriteCommon, dxCommon->GetDev());
+		// デバッグテキスト描画
+		debugText->DrawAll();
 
 		// ４．描画コマンドここまで
 
 		//描画後処理
 		dxCommon->PostDraw();
 	}
-	//スプライト解放
+
+	// デバッグテキスト解放
+	delete debugText;
+
+	// スプライト解放
 	for (auto& sprite : sprites) {
 		delete sprite;
 	}
 	sprites.clear();
 
-	//スプライト共通部解放
+	// スプライト共通部解放
 	delete spriteCommon;
 
-	//3Dオブジェクト解放
+	// 3Dオブジェクト解放
 	delete model_1;
 	delete model_2;
 
-	//3Dオブジェクト解放
+	// 3Dオブジェクト解放
 	delete object3d_1;
 	delete object3d_2;
 	delete object3d_3;
@@ -481,16 +405,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	xAudio2.Reset();
 	// 音声データ解放
 	SoundUnload(&soundData1);
-	//windowsAPIの終了処理
+	// windowsAPIの終了処理
 	winApp->Finalize();
 
 	//DirectX解放
 	delete dxCommon;
 
-	//入力解放
+	// 入力解放
 	delete input;
 
-	//WindowsAPI解放
+	// WindowsAPI解放
 	delete winApp;
 	winApp = nullptr;
 

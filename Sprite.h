@@ -57,6 +57,8 @@ public:
 	void SetPosition(const DirectX::XMFLOAT3& position) { position_ = position; }
 	void SetRotation(float rotation) { rotation_ = rotation; }
 	void SetSize(const DirectX::XMFLOAT2& size) { size_ = size; }
+	void SetTexLeftTop(const::DirectX::XMFLOAT2& texLeftTop) { texLeftTop_ = texLeftTop; }
+	void SetTexSize(const::DirectX::XMFLOAT2& texSize) { texSize_ = texSize; }
 
 private:
 	//スプライト共通部分
