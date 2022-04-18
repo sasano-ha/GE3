@@ -166,6 +166,8 @@ void SoundPlayWave(IXAudio2* xAudio2, const SoundData& soundData) {
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
+	int a;
+
 	//ポインタ置き場
 	Input* input = nullptr;
 	WinApp* winApp = nullptr;
