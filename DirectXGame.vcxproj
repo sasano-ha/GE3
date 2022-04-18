@@ -150,6 +150,7 @@
   <ItemGroup>
     <ClCompile Include="DebugText.cpp" />
     <ClCompile Include="DirectXCommon.cpp" />
+    <ClCompile Include="FbxLoader.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Model.cpp" />
@@ -209,6 +210,7 @@
   <ItemGroup>
     <ClInclude Include="DebugText.h" />
     <ClInclude Include="DirectXCommon.h" />
+    <ClInclude Include="FbxLoader.h" />
     <ClInclude Include="input.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Object3d.h" />

@@ -13,7 +13,7 @@
 #include "Sprite.h"
 #include "DebugText.h"
 
-#include "fbxsdk.h"
+#include "FbxLoader.h"
 
 using namespace Microsoft::WRL;
 
@@ -168,8 +168,6 @@ void SoundPlayWave(IXAudio2* xAudio2, const SoundData& soundData) {
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-	FbxManager* fbxmanager = FbxManager::Create();
-
 	//ポインタ置き場
 	Input* input = nullptr;
 	WinApp* winApp = nullptr;
@@ -239,6 +237,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//3Dオブジェクト静的初期化
 	Object3d::StaticInitialize(dxCommon->GetDev(), WinApp::windows_width, WinApp::windows_height);
 
+	FbxLoader::GetInstance()->Initialize(dxCommon->GetDev());
 
 	// DirectX初期化処理　ここまで
 #pragma endregion DirectX初期化処理
@@ -299,7 +298,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	spriteCommon->LoadTexture(debugTextTexNumber, L"Resources/debugfont.png");
 	// デバッグテキスト初期化
 	debugText->Initialize(spriteCommon, debugTextTexNumber);
-
+	// モデル名指定してファイル読み込み
+	FbxLoader::GetInstance()->LoadModelFromFile("cube");
 
 #pragma endregion 描画初期化処理
 
@@ -383,6 +383,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//描画後処理
 		dxCommon->PostDraw();
 	}
+
+	FbxLoader::GetInstance()->Finalize();
 
 	// デバッグテキスト解放
 	delete debugText;
