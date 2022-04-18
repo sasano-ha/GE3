@@ -13,6 +13,8 @@
 #include "Sprite.h"
 #include "DebugText.h"
 
+#include "fbxsdk.h"
+
 using namespace Microsoft::WRL;
 
 // チャンクヘッダ
@@ -166,7 +168,7 @@ void SoundPlayWave(IXAudio2* xAudio2, const SoundData& soundData) {
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-	int a;
+	FbxManager* fbxmanager = FbxManager::Create();
 
 	//ポインタ置き場
 	Input* input = nullptr;
@@ -359,9 +361,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		Object3d::PreDraw(dxCommon->GetCmdList());
 
 		//3Dオブジェクトの描画
-		object3d_1->Draw();
+		/*object3d_1->Draw();
 		object3d_2->Draw();
-		object3d_3->Draw();
+		object3d_3->Draw();*/
 
 		//3Dオブジェクトの描画後処理
 		Object3d::PostDraw();
@@ -370,11 +372,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		spriteCommon->PreDraw();
 
 		for (auto& sprite : sprites) {
-			sprite->Draw();
+			/*sprite->Draw();*/
 		}
 
 		// デバッグテキスト描画
-		debugText->DrawAll();
+		/*debugText->DrawAll();*/
 
 		// ４．描画コマンドここまで
 
