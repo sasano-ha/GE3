@@ -1,8 +1,5 @@
 ﻿#include <vector>
 #include <string>
-#include <fstream>
-#include <xaudio2.h>
-#pragma comment(lib,"xaudio2.lib")
 
 #include "input.h"
 #include "WinApp.h"
@@ -15,105 +12,6 @@
 #include "Audio.h"
 
 using namespace Microsoft::WRL;
-
-
-
-//// 音声読み込み
-//SoundData SoundLoadWave(const char* filename)
-//{
-//	// ファイル入力ストリームのインスタンス
-//	std::ifstream file;
-//	// .wavファイルをバイナリモードで開く
-//	file.open(filename, std::ios_base::binary);
-//	// ファイルオープン失敗を検出する
-//	assert(file.is_open());
-//
-//	// RIFFヘッダーの読み込み
-//	RiffHeader riff;
-//	file.read((char*)&riff, sizeof(riff));
-//	// ファイルがRIFFかチェック
-//	if (strncmp(riff.chunk.id, "RIFF", 4) != 0) {
-//		assert(0);
-//	}
-//	// タイプがWAVEかチェック
-//	if (strncmp(riff.type, "WAVE", 4) != 0) {
-//		assert(0);
-//	}
-//
-//	// Formatチャンクの読み込み
-//	FormatChunk format = {};
-//	// チャンクヘッダーの確認
-//	file.read((char*)&format, sizeof(ChunkHeader));
-//	if (strncmp(format.chunk.id, "fmt ", 4) != 0) {
-//		assert(0);
-//	}
-//	// チャンク本体の読み込み
-//	assert(format.chunk.size <= sizeof(format.fmt));
-//	file.read((char*)&format.fmt, format.chunk.size);
-//
-//	// Dataチャンクの読み込み
-//	ChunkHeader data;
-//	file.read((char*)&data, sizeof(data));
-//	// JUNKチャンクを検出した場合
-//	if (strncmp(data.id, "JUNK ", 4) == 0) {
-//		// 読み取り位置をJUNKチャンクの終わりまで進める
-//		file.seekg(data.size, std::ios_base::cur);
-//		// 再読み込み
-//		file.read((char*)&data, sizeof(data));
-//	}
-//
-//	if (strncmp(data.id, "data ", 4) != 0) {
-//		assert(0);
-//	}
-//
-//	// Dataチャンクのデータ部（波形データ）の読み込み
-//	char* pBuffer = new char[data.size];
-//	file.read(pBuffer, data.size);
-//
-//	// Waveファイルを閉じる
-//	file.close();
-//
-//	// returnする為の音声データ
-//	SoundData soundData = {};
-//
-//	soundData.wfex = format.fmt;
-//	soundData.pBuffer = reinterpret_cast<BYTE*>(pBuffer);
-//	soundData.bufferSize = data.size;
-//
-//	return soundData;
-//}
-//
-//// 音声データ解放
-//void SoundUnload(SoundData* soundData)
-//{
-//	// バッファのメモリを解放
-//	delete[] soundData->pBuffer;
-//
-//	soundData->pBuffer = 0;
-//	soundData->bufferSize = 0;
-//	soundData->wfex = {};
-//}
-//
-//// 音声再生
-//void SoundPlayWave(IXAudio2* xAudio2, const SoundData& soundData) {
-//
-//	HRESULT result;
-//
-//	// 波形フォーマットを元にSourceVoiceの生成
-//	IXAudio2SourceVoice* pSourceVoice = nullptr;
-//	result = xAudio2->CreateSourceVoice(&pSourceVoice, &soundData.wfex);
-//	assert(SUCCEEDED(result));
-//
-//	// 再生する波形データの設定
-//	XAUDIO2_BUFFER buf{};
-//	buf.pAudioData = soundData.pBuffer;
-//	buf.AudioBytes = soundData.bufferSize;
-//	buf.Flags = XAUDIO2_END_OF_STREAM;
-//
-//	// 波形データの再生
-//	result = pSourceVoice->SubmitSourceBuffer(&buf);
-//	result = pSourceVoice->Start();
-//}
 
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
@@ -155,15 +53,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	SpriteCommon* spriteCommon = new SpriteCommon();
 	spriteCommon->Initialize(dxCommon->GetDev(), dxCommon->GetCmdList(), winApp->windows_width, winApp->windows_height);
 
+	//デバッグテキスト
+	debugText = new DebugText();
 	// デバッグテキスト用のテクスチャ番号を指定
 	const int debugTextTexNumber = 2;
 	// デバッグテキスト用のテクスチャ読み込み
 	spriteCommon->LoadTexture(debugTextTexNumber, L"Resources/debugfont.png");
 	// デバッグテキスト初期化
 	debugText->Initialize(spriteCommon, debugTextTexNumber);
-
-	/*const int SPRITES_NUM = 1;
-	Sprite sprites[SPRITES_NUM];*/
 
 
 	//入力の初期化
@@ -175,10 +72,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	audio->Initialize();
 
 	// 音声読み込み
-	//SoundData soundData1 = SoundLoadWave("Resources/Alarm01.wav");
-
+	audio->LoadWave("Alarm01.wav");
 	// 音声再生
-	//SoundPlayWave(xAudio2.Get(), soundData1);
+	audio->PlayWave("Alarm01.wav");
 
 	//3Dオブジェクト静的初期化
 	Object3d::StaticInitialize(dxCommon->GetDev(), WinApp::windows_width, WinApp::windows_height);
@@ -208,6 +104,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	object3d_2->SetPosition({ -5, 0, -5 });
 	object3d_3->SetPosition({ +5, 0, +5 });
 
+	//// 音声読み込み
+	//audio->LoadWave("Alarm01.wav");
+	//// 音声再生
+	//audio->PlayWave("Alarm01.wav");
+
 	// スプライト共通テクスチャ読み込み
 	spriteCommon->LoadTexture(0, L"Resources/texture.png");
 	spriteCommon->LoadTexture(1, L"Resources/house.png");
@@ -233,8 +134,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		sprites.push_back(sprite);
 	}
 
-	// デバッグテキスト
-	debugText = new DebugText();
+	//// デバッグテキスト
+	//debugText = new DebugText();
 
 
 

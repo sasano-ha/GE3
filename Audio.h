@@ -2,6 +2,8 @@
 #include <cstdint>
 #include <xaudio2.h>
 #include <wrl.h>
+#include <map>
+#include <string>
 
 
 
@@ -49,14 +51,37 @@ public:
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Initialize();
+	void Initialize(const std::string& directoryPath = "Resources/");
 
 	/// <summary>
 	/// 終了処理
 	/// </summary>
 	void Finalize();
 
+	/// <summary>
+	/// WAV音声読み込み
+	/// </summary>
+	/// <param name= "filename">WAVファイル名</param>
+	void LoadWave(const std::string& filename);
+
+	/// <summary>
+	/// サウンドデータの解放
+	/// </summary>
+	/// <param name="soundData">サウンドデータ</param>
+	void Unload(SoundData* soundData);
+
+	/// <summary>
+	/// 音声再生
+	/// </summary>
+	/// <param name="filename">サウンドデータ名</param>
+	void PlayWave(const std::string& filename);
+
 private:
-	Microsoft::WRL::ComPtr<IXAudio2> xAudio2;
+	//XAudio2のインスタンス
+	Microsoft::WRL::ComPtr<IXAudio2> xAudio2_;
+	//サウンドデータの連想配列
+	std::map<std::string, SoundData> soundDates_;
+	//サウンド格納ディレクトリ
+	std::string directoryPath_;
 };
 
