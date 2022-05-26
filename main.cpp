@@ -76,7 +76,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	// 音声読み込み
 	audio->LoadWave("Alarm01.wav");
 	// 音声再生
-	audio->PlayWave("Alarm01.wav");
+	//audio->PlayWave("Alarm01.wav");
 
 	//3Dオブジェクト静的初期化
 	Object3d::StaticInitialize(dxCommon->GetDev(), WinApp::windows_width, WinApp::windows_height);
@@ -140,13 +140,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//// デバッグテキスト
 	//debugText = new DebugText();
 
-
-	// デバッグテキスト用のテクスチャ番号を指定
-	const int debugTextTexNumber = 2;
-	// デバッグテキスト用のテクスチャ読み込み
-	spriteCommon->LoadTexture(debugTextTexNumber, L"Resources/debugfont.png");
-	// デバッグテキスト初期化
-	debugText->Initialize(spriteCommon, debugTextTexNumber);
 	// モデル名指定してファイル読み込み
 	FbxLoader::GetInstance()->LoadModelFromFile("cube");
 
