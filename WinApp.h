@@ -1,33 +1,3 @@
-#pragma once
-#include <Windows.h>
-
-//WindowsAPI
-class WinApp
-{
-public:	//定数
-	//ウィンドウ横幅
-	static const int windows_width = 1280;
-	//ウィンドウ縦幅
-	static const int windows_height = 720;
-public:	//静的メンバ関数
-	static LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
-
-public:	//メンバ関数
-	//初期化
-	void Initialize();
-	//更新
-	void Update();
-	//終了
-	void Finalize();
-	//メッセージの処理
-	bool ProcessMessage();
-	//getter
-	HWND GetHwnd() { return hwnd; }
-	//getter
-	HINSTANCE GetHInstance() { return w.hInstance; }
-private:
-	//ウィンドウハンドル
-	HWND hwnd = nullptr;
-	//ウィンドウクラスの設定
-	WNDCLASSEX w{};
-};
+version https://git-lfs.github.com/spec/v1
+oid sha256:72cd1562d2828884bd134ad3943f66f18ff1858efc61639337eb5816fb3b5bf7
+size 677
