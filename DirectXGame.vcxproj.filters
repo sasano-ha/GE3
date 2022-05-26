@@ -1,121 +1,44 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="ソース ファイル">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="ヘッダー ファイル">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="リソース ファイル">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="シェーダーファイル">
-      <UniqueIdentifier>{7e5584a5-2895-4181-9eaf-f65622106b57}</UniqueIdentifier>
-    </Filter>
+    <FxCompile Include="Resources\shaders\BasicPS.hlsl" />
+    <FxCompile Include="Resources\shaders\BasicVS.hlsl" />
+    <FxCompile Include="Resources\shaders\OBJPixelShader.hlsl" />
+    <FxCompile Include="Resources\shaders\OBJVertexShader.hlsl" />
+    <FxCompile Include="Resources\shaders\SpritePS.hlsl" />
+    <FxCompile Include="Resources\shaders\SpriteVS.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="input.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="WinApp.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="DirectXCommon.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Object3d.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Model.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="SpriteCommon.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Sprite.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugText.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Audio.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="FbxLoader.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
+    <ClCompile Include="Audio.cpp" />
+    <ClCompile Include="DebugText.cpp" />
+    <ClCompile Include="DirectXCommon.cpp" />
+    <ClCompile Include="FbxLoader.cpp" />
+    <ClCompile Include="input.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Model.cpp" />
+    <ClCompile Include="Object3d.cpp" />
+    <ClCompile Include="Sprite.cpp" />
+    <ClCompile Include="SpriteCommon.cpp" />
+    <ClCompile Include="WinApp.cpp" />
+    <ClCompile Include="Camera.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\shaders\Basic.hlsli">
-      <Filter>シェーダーファイル</Filter>
-    </None>
-    <None Include="Resources\shaders\Sprite.hlsli">
-      <Filter>シェーダーファイル</Filter>
-    </None>
-    <None Include="Resources\shaders\OBJShaderHeader.hlsli">
-      <Filter>シェーダーファイル</Filter>
-    </None>
+    <ClInclude Include="Audio.h" />
+    <ClInclude Include="DebugText.h" />
+    <ClInclude Include="DirectXCommon.h" />
+    <ClInclude Include="FbxLoader.h" />
+    <ClInclude Include="input.h" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="Object3d.h" />
+    <ClInclude Include="PipelineSet.h" />
+    <ClInclude Include="Sprite.h" />
+    <ClInclude Include="SpriteCommon.h" />
+    <ClInclude Include="WinApp.h" />
+    <ClInclude Include="Camera.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Resources\shaders\BasicPS.hlsl">
-      <Filter>シェーダーファイル</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\shaders\BasicVS.hlsl">
-      <Filter>シェーダーファイル</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\shaders\SpritePS.hlsl">
-      <Filter>シェーダーファイル</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\shaders\SpriteVS.hlsl">
-      <Filter>シェーダーファイル</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\shaders\OBJPixelShader.hlsl">
-      <Filter>シェーダーファイル</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\shaders\OBJVertexShader.hlsl">
-      <Filter>シェーダーファイル</Filter>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="input.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="WinApp.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="DirectXCommon.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Object3d.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Model.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="SpriteCommon.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Sprite.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="PipelineSet.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugText.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Audio.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="FbxLoader.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
+    <None Include="Resources\shaders\Basic.hlsli" />
+    <None Include="Resources\shaders\OBJShaderHeader.hlsli" />
+    <None Include="Resources\shaders\Sprite.hlsli" />
   </ItemGroup>
 </Project>
