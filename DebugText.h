@@ -18,6 +18,8 @@ public: // ’è”‚ÌéŒ¾
 public: // ƒƒ“ƒoŠÖ”
 	void Initialize(SpriteCommon* spriteCommon, UINT texnumber);
 
+	void Finalize();
+
 	void Print(const std::string& text, float x, float y, float scale_ = 1.0f);
 
 	void DrawAll();

@@ -98,7 +98,7 @@ void Object3d::SetEye(XMFLOAT3 eye)
 	UpdateViewMatrix();
 }
 
-void Object3d::SetTarget(XMFLOAT3 target)
+void Object3d::SetTarget(const XMFLOAT3& target)
 {
 	Object3d::target = target;
 

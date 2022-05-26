@@ -16,6 +16,13 @@ void DebugText::Initialize(SpriteCommon* spriteCommon, UINT texnumber)
 	}
 }
 
+void DebugText::Finalize()
+{
+	for (auto& sprite : sprites_) {
+		delete sprite;
+	}
+}
+
 void DebugText::Print(const std::string& text, float x, float y, float scale_)
 {
 	// ‘S‚Ä‚Ì•¶Žš‚É‚Â‚¢‚Ä

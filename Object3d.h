@@ -98,7 +98,7 @@ public: // 静的メンバ関数
 	/// 注視点座標の設定
 	/// </summary>
 	/// <param name="position">座標</param>
-	static void SetTarget(XMFLOAT3 target);
+	static void SetTarget(const XMFLOAT3& target);
 
 	/// <summary>
 	/// ベクトルによる移動
